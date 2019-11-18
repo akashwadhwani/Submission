@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mapbox on Glitch</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/script.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/jquery-csv/src/jquery.csv.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v0.44.2/mapbox-gl.css" rel="stylesheet"/>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v0.44.2/mapbox-gl.js"></script>
+  </head>
+  <body>
+    <div id="map">
+    </div>
+    <div class="glitchButton" style="position:fixed;top:20px;right:20px;"></div>
+    <script src="https://button.glitch.me/button.js"></script>
+    <script>
+      // Display a Mapbox map
+      mapboxgl.accessToken = 'pk.eyJ1IjoiYWthc2h3YWRod2FuaSIsImEiOiJjazJ0NWE5eGQwcnBsM2NvM3lnbjhjcjl2In0.54o9Jr-w8vzcUXXvbjJNqA';
+      
+      // Details on the Mapbox API here: https://www.mapbox.com/mapbox-gl-js/api/#map
+      var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/blank',
+        zoom: 12
+        
+      });
+  map.on('load', function() {
+  map.addLayer({
+    id: 'Lable',
+    type: 'circle',
+    source: {
+      type: 'vector',
+      url: 'akashwadhwani.ck2wpw6qy2u702ouridyk72br-2mz8r'
+    },
+    'source-layer': 'https://cdn.glitch.com/2303ac79-c661-4c68-ab2c-336ceadb2840%2FCCTV%20Cameras%20by%20City%20and%20Country.csv?v=1573619616742',
+    paint: {
+      'circle-radius': ['-', 1000, ['number', ['get', 'cctvcamera'], 1000]],
+      'circle-opacity': 0.8,
+      'circle-color': 'rgb(171, 72, 33)'
+    }
+  });
+});
+      
+      var bounds = new mapboxgl.LngLatBounds();
+
+      
+      // Import data from CSV to display as map items
+      $.ajax({
+        type: "GET",
+        url: "https://cdn.glitch.com/2303ac79-c661-4c68-ab2c-336ceadb2840%2FCCTV%20Cameras%20by%20City%20and%20Country.csv?v=1573619616742"
+      })
+      .then(function(csv) {
+        // the next line calls the jquery-csv functions that we imported in the file above
+        var data = $.csv.toObjects(csv);
+        data.forEach(function(listing) {
+          var el = document.createElement('div');
+          el.className = 'marker';
+          
+          var lat = listing.lat;
+          var lng = listing.lng;
+
+          new mapboxgl.Marker(el)
+          .setLngLat([lng, lat])
+          .setPopup(new mapboxgl.Popup()
+          .setHTML(getHTML(listing)))
+          .addTo(map);
+
+          bounds.extend([lng, lat]);
+        });        
+        map.fitBounds(bounds, {
+          linear: true,
+          padding: 50, 
+          maxZoom:14
+        });
+      });
+    </script>
+  </body>
+</html>
